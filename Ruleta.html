@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ruleta del Jurado</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --ink: #1c1230;
+    --surface: #241a3a;
+    --surface-2: #2d2147;
+    --surface-3: #382a56;
+    --hairline: #3a2c58;
+    --text: #f7f3ff;
+    --text-dim: #b3a6cf;
+    --gold: #ffd66b;
+    --coral: #ff6b6b;
+    --amber: #ffb37e;
+    --mint: #5eead4;
+    --sky: #7dd3fc;
+    --violet: #b39ddb;
+    --rose: #ff8fb1;
+    --used: rgba(255,255,255,0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100dvh;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(255,214,107,0.08), transparent 55%),
+      radial-gradient(circle at 85% 100%, rgba(125,211,252,0.07), transparent 50%),
+      var(--ink);
+  }
+
+  /* ============ APP SHELL ============ */
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    max-width: 980px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px clamp(14px, 4vw, 28px) 8px;
+  }
+
+  @media (max-width: 759px) {
+    .app-header { padding: 10px 14px 6px; }
+    .app-brand-mark { width: 28px; height: 28px; font-size: 13px; border-radius: 8px; }
+    .app-brand-text { font-size: 13px; }
+    .app-brand-text span { font-size: 9px; }
+  }
+
+  .app-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, var(--gold), var(--amber));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .app-brand-text {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.15;
+  }
+  .app-brand-text span {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* Desktop top nav (hidden on mobile) */
+  .top-nav {
+    display: none;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 5px;
+  }
+  .top-nav button {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    padding: 9px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .top-nav button.active {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .top-nav button:hover:not(.active) {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .top-nav button:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+
+  .app-main {
+    flex: 1;
+    width: 100%;
+    padding: 4px clamp(10px, 3.5vw, 28px) 0;
+    padding-bottom: calc(86px + env(safe-area-inset-bottom));
+  }
+
+  .page { display: none; }
+  .page.active { display: block; animation: fadein 0.25s ease; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Bottom tab bar (mobile) */
+  .tab-bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    display: flex;
+    background: rgba(28,18,48,0.92);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--hairline);
+    padding: 8px clamp(8px, 4vw, 20px) calc(8px + env(safe-area-inset-bottom));
+    z-index: 50;
+    max-width: 980px;
+    margin: 0 auto;
+    right: 0;
+  }
+  @media (min-width: 760px) {
+    .tab-bar { left: 50%; transform: translateX(-50%); width: min(980px, 100vw); }
+  }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    padding: 6px 4px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: color 0.15s ease;
+  }
+  .tab-btn .tab-icon {
+    font-size: 19px;
+    line-height: 1;
+  }
+  .tab-btn.active { color: var(--gold); }
+  .tab-btn:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+
+  @media (min-width: 760px) {
+    .tab-bar { display: none; }
+    .top-nav { display: flex; }
+    .app-main { padding-bottom: 24px; }
+  }
+
+  /* ============ SHARED CARD ============ */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 22px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  }
+
+  .section-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 6px;
+  }
+  .section-title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: clamp(20px, 5.5vw, 25px);
+    margin: 0 0 6px;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.55;
+    margin: 0 0 18px;
+  }
+
+  /* ============ ICON BUTTONS (speak) ============ */
+  .icon-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    background: var(--surface-2);
+    color: var(--gold);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+  .icon-btn:active { transform: scale(0.92); }
+  .icon-btn:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .icon-btn.is-speaking {
+    background: var(--gold);
+    color: var(--ink);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,214,107,0.5); } 50% { box-shadow: 0 0 0 6px rgba(255,214,107,0); } }
+
+  .pill-btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    border-radius: 10px;
+    padding: 9px 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.12s ease;
+    border: 1px solid rgba(255,214,107,0.35);
+    background: rgba(255,214,107,0.14);
+    color: var(--gold);
+  }
+  .pill-btn:active { transform: scale(0.97); }
+  .pill-btn:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .pill-btn.sky { border-color: rgba(125,211,252,0.35); background: rgba(125,211,252,0.14); color: var(--sky); }
+  .pill-btn.mint { border-color: rgba(94,234,212,0.35); background: rgba(94,234,212,0.14); color: var(--mint); }
+  .pill-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ============ PRACTICE / RECORDER WIDGET (shared) ============ */
+  .rec-box {
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 14px;
+    margin-top: 12px;
+  }
+  .rec-box-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rec-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .rec-mic-btn {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background: var(--coral);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+  .rec-mic-btn:active { transform: scale(0.93); }
+  .rec-mic-btn:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .rec-mic-btn.recording {
+    background: var(--coral);
+    animation: recpulse 1.1s ease-in-out infinite;
+  }
+  @keyframes recpulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,107,0.55); } 50% { box-shadow: 0 0 0 9px rgba(255,107,107,0); } }
+  .rec-status {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    flex: 1;
+    min-width: 120px;
+  }
+  .rec-status.live { color: var(--coral); font-weight: 600; }
+  .rec-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .rec-play-audio {
+    height: 34px;
+    flex: 1;
+    min-width: 160px;
+  }
+  .rec-transcript {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--hairline);
+    display: none;
+  }
+  .rec-transcript.show { display: block; }
+  .rec-transcript-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--violet);
+    margin-bottom: 5px;
+  }
+  .rec-transcript-text {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text);
+    margin: 0;
+    font-style: italic;
+  }
+  .rec-eval-btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border: none;
+    background: var(--mint);
+    color: var(--ink);
+    transition: transform 0.12s ease, opacity 0.12s ease;
+    flex: 1;
+    min-width: 140px;
+  }
+  .rec-eval-btn:active { transform: scale(0.97); }
+  .rec-eval-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .rec-eval-btn:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .rec-eval-panel {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+    display: none;
+  }
+  .rec-eval-panel.show { display: block; }
+  .rec-eval-loading {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rec-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--hairline);
+    border-top-color: var(--mint);
+    animation: recspin 0.7s linear infinite;
+  }
+  @keyframes recspin { to { transform: rotate(360deg); } }
+  .rec-eval-score-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .rec-eval-chip {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 20px;
+    background: rgba(94,234,212,0.14);
+    color: var(--mint);
+    border: 1px solid rgba(94,234,212,0.3);
+  }
+  .rec-eval-section {
+    margin-bottom: 10px;
+  }
+  .rec-eval-section:last-child { margin-bottom: 0; }
+  .rec-eval-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin-bottom: 4px;
+  }
+  .rec-eval-section-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    margin: 0;
+    white-space: pre-line;
+  }
+  .rec-eval-error {
+    font-size: 12.5px;
+    color: var(--coral);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .icon-btn.is-speaking { animation: none; }
+    .page.active { animation: none; }
+    .rec-mic-btn.recording { animation: none; }
+    .rec-spinner { animation: none; }
+  }
+
+  /* ============ WHEEL PAGE ============ */
+  .wq-card {
+    padding: clamp(16px, 4.5vw, 26px) clamp(14px, 4vw, 22px) clamp(18px, 5vw, 28px);
+    text-align: center;
+  }
+
+  .wq-stage {
+    position: relative;
+    width: 100%;
+    max-width: min(78vw, 300px);
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 18px;
+  }
+
+  .wq-pointer {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 13px solid transparent;
+    border-right: 13px solid transparent;
+    border-top: 20px solid var(--gold);
+    z-index: 3;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  }
+
+  .wq-wheel-outer {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 4px solid var(--surface-2);
+    box-shadow: 0 0 0 2px var(--hairline), inset 0 0 30px rgba(0,0,0,0.35);
+    transform: rotate(0deg);
+    transition: transform 4.5s cubic-bezier(0.22, 0.85, 0.18, 1);
+    overflow: hidden;
+  }
+  .wq-wheel-outer svg { display: block; width: 100%; height: 100%; }
+
+  .wq-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 3px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--gold);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  .wq-mute-toggle {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 4;
+  }
+
+  .wq-spin-btn {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    border-radius: 14px;
+    padding: 14px 18px;
+    width: 100%;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+  .wq-spin-btn:active { transform: scale(0.98); }
+  .wq-spin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .wq-spin-btn:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+
+  .wq-hook {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+    margin: 10px 0 0;
+  }
+
+  .wq-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 16px 0 4px;
+  }
+  .wq-dots {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 260px;
+  }
+  .wq-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--hairline);
+  }
+  .wq-dot.done { background: var(--mint); }
+  .wq-progress-label {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .wq-result {
+    margin-top: 16px;
+    text-align: left;
+  }
+  .wq-result-card {
+    background: var(--surface-2);
+    border-radius: 14px;
+    padding: 16px 16px 18px;
+  }
+  .wq-result-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 8px;
+  }
+  .wq-question-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .wq-question {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.4;
+    margin: 0;
+  }
+  .wq-answer-panel {
+    display: none;
+    border-top: 1px solid var(--hairline);
+    padding-top: 14px;
+    margin-bottom: 6px;
+  }
+  .wq-answer-panel.show { display: block; }
+  .wq-answer-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mint);
+    margin-bottom: 6px;
+  }
+  .wq-answer-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .wq-answer-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    margin: 0;
+  }
+  .wq-translation {
+    display: none;
+    border-top: 1px dashed var(--hairline);
+    padding-top: 12px;
+  }
+  .wq-translation.show { display: block; }
+  .wq-translation .wq-answer-label { color: var(--sky); }
+
+  .wq-btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .wq-btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 10px;
+    padding: 11px 14px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 120px;
+    transition: transform 0.12s ease;
+    border: none;
+  }
+  .wq-btn:active { transform: scale(0.97); }
+  .wq-btn:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .wq-btn-reveal {
+    background: var(--text);
+    color: var(--ink);
+  }
+  .wq-btn-translate {
+    background: rgba(125,211,252,0.14);
+    color: var(--sky);
+    border: 1px solid rgba(125,211,252,0.35);
+  }
+  .wq-btn-speak {
+    background: rgba(255,214,107,0.14);
+    color: var(--gold);
+    border: 1px solid rgba(255,214,107,0.35);
+  }
+
+  .wq-reset-link {
+    display: block;
+    margin: 16px auto 0;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .wq-reset-link:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wq-wheel-outer { transition: transform 0.6s ease; }
+  }
+
+  /* Mobile: make the wheel page feel full-screen / app-like */
+  @media (max-width: 759px) {
+    .wq-card {
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      box-shadow: none;
+      margin: 0 -10px;
+      min-height: calc(100dvh - 56px - 78px - env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-top: none;
+      padding-top: 10px;
+      padding-bottom: 14px;
+    }
+    .wq-stage { max-width: min(80vw, 320px); margin-bottom: 14px; }
+    .section-sub { font-size: 12px; margin-bottom: 14px; }
+    .wq-hook { margin-top: 8px; }
+    .wq-progress { margin: 12px 0 2px; }
+  }
+
+  /* ============ BANK PAGE ============ */
+  .bank-card {
+    padding: clamp(16px, 4.5vw, 24px);
+    margin-bottom: 16px;
+  }
+  .bank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .bank-item {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 14px 14px 16px;
+  }
+  .bank-item-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .bank-item-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    color: var(--gold);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+  .bank-item-q {
+    flex: 1;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15.5px;
+    line-height: 1.45;
+    margin: 0;
+    padding-top: 3px;
+  }
+  .bank-item-body {
+    padding-left: 38px;
+  }
+  .bank-toggle-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .bank-answer {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hairline);
+  }
+  .bank-answer.show { display: block; }
+  .bank-answer-text {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text);
+    margin: 0;
+  }
+  .bank-translation {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--hairline);
+  }
+  .bank-translation.show { display: block; }
+  .bank-translation-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin-bottom: 5px;
+  }
+  .bank-translation-text {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-dim);
+    margin: 0 0 8px;
+  }
+  .bank-translation-text:last-child { margin-bottom: 0; }
+  .bank-translation-text em { color: var(--violet); font-style: italic; }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    flex-shrink: 0;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--hairline);
+    background: var(--surface-2);
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .filter-chip.active {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+  }
+  .filter-chip:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+
+  /* ============ SPEECHES PAGE ============ */
+  .speech-card {
+    padding: clamp(16px, 4.5vw, 24px);
+    margin-bottom: 16px;
+  }
+  .speech-item {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    padding: 16px 16px 18px;
+    margin-bottom: 14px;
+  }
+  .speech-item:last-child { margin-bottom: 0; }
+  .speech-item-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .speech-item-who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .speech-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--rose), var(--coral));
+    color: var(--ink);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .speech-name {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15.5px;
+    margin: 0;
+    line-height: 1.2;
+  }
+  .speech-role {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin: 1px 0 0;
+  }
+  .speech-text {
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text);
+    margin: 0 0 12px;
+    white-space: pre-line;
+  }
+  .speech-translation {
+    display: none;
+    border-top: 1px dashed var(--hairline);
+    padding-top: 12px;
+    margin-top: 4px;
+  }
+  .speech-translation.show { display: block; }
+  .speech-translation-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin-bottom: 6px;
+  }
+  .speech-translation-text {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin: 0;
+    white-space: pre-line;
+  }
+  .speech-btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="app-brand">
+      <div class="app-brand-mark">JD</div>
+      <div class="app-brand-text">Ruleta del Jurado<span>Defensa de proyecto</span></div>
+    </div>
+    <nav class="top-nav" id="topNav">
+      <button data-page="wheel" class="active"><span>🎯</span> Ruleta</button>
+      <button data-page="bank"><span>📋</span> Banco</button>
+      <button data-page="speeches"><span>🎤</span> Speeches</button>
+    </nav>
+  </header>
+
+  <main class="app-main" id="appMain">
+
+    <section class="page active" id="page-wheel">
+      <div class="card wq-card">
+        <div class="section-eyebrow">Ronda de preguntas</div>
+        <h2 class="section-title" style="font-size: clamp(22px, 6.5vw, 27px);">Ruleta del Jurado</h2>
+        <p class="section-sub" style="max-width: 320px; margin-left: auto; margin-right: auto;">Gira la ruleta para que te toque una pregunta al azar, exactamente como pasaría frente al jurado. La pregunta se lee en voz alta automáticamente.</p>
+
+        <div class="wq-stage">
+          <button class="icon-btn wq-mute-toggle" id="wqMuteBtn" aria-label="Silenciar voz" title="Silenciar voz">🔊</button>
+          <div class="wq-pointer"></div>
+          <div class="wq-wheel-outer" id="wqWheelOuter">
+            <svg id="wqWheelSvg" viewBox="0 0 300 300"></svg>
+          </div>
+          <div class="wq-hub" id="wqHub">?</div>
+        </div>
+
+        <button class="wq-spin-btn" id="wqSpinBtn">Girar la ruleta</button>
+        <p class="wq-hook">No saber qué pregunta te toca es el mismo gancho que usan las redes sociales.</p>
+
+        <div class="wq-progress">
+          <div class="wq-dots" id="wqDots"></div>
+        </div>
+        <div class="wq-progress-label" id="wqProgressLabel">0 de 11 preguntas usadas</div>
+
+        <div class="wq-result" id="wqResult"></div>
+
+        <button class="wq-reset-link" id="wqResetBtn">Reiniciar ruleta</button>
+      </div>
+    </section>
+
+    <!-- PAGE_BANK -->
+    <section class="page" id="page-bank">
+      <div class="card bank-card">
+        <div class="section-eyebrow">Banco completo</div>
+        <h2 class="section-title">Todas las preguntas</h2>
+        <p class="section-sub">Repasa el banco completo en orden. Escucha cada pregunta y respuesta en inglés, y consulta su traducción al español cuando la necesites.</p>
+        <div class="filter-row" id="bankFilterRow">
+          <button class="filter-chip active" data-filter="all">Todas</button>
+          <button class="filter-chip" data-filter="unheard">Sin escuchar</button>
+        </div>
+        <div class="bank-list" id="bankList"></div>
+      </div>
+    </section>
+
+    <!-- PAGE_SPEECHES -->
+    <section class="page" id="page-speeches">
+      <div class="card speech-card">
+        <div class="section-eyebrow">Exposición oral</div>
+        <h2 class="section-title">Speeches del equipo</h2>
+        <p class="section-sub">El discurso de cada integrante, listo para escuchar en inglés con su traducción al español.</p>
+        <div id="speechList"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-page="wheel"><span class="tab-icon">🎯</span>Ruleta</button>
+    <button class="tab-btn" data-page="bank"><span class="tab-icon">📋</span>Banco</button>
+    <button class="tab-btn" data-page="speeches"><span class="tab-icon">🎤</span>Speeches</button>
+  </nav>
+
+</div>
+
+<script>
+(function() {
+
+  /* ====================================================================
+     DATA: QUESTION BANK
+  ==================================================================== */
+  const questions = [
+    {
+      q: "How would you encourage a school to raise awareness about social media addiction among students?",
+      a: "I would encourage schools to implement a comprehensive program that combines education, peer discussions, and practical strategies. For instance, workshops could be held regularly, integrating real stories from students, and also involving teachers in monitoring healthy screen habits.",
+      qEs: "¿Cómo motivarías a un colegio a crear conciencia sobre la adicción a las redes sociales entre los estudiantes?",
+      aEs: "Motivaría a los colegios a implementar un programa integral que combine educación, conversaciones entre compañeros y estrategias prácticas. Por ejemplo, se podrían realizar talleres regularmente, incluyendo historias reales de estudiantes, e involucrando también a los profesores en el seguimiento de hábitos saludables frente a la pantalla."
+    },
+    {
+      q: "What role do parents play in helping their children manage social media habits?",
+      a: "Parents play a crucial role. They can set firm but flexible boundaries, like limiting screen time after a certain hour. They can also model balanced tech use themselves, and have ongoing, open conversations about how social media affects emotions.",
+      qEs: "¿Qué papel juegan los padres a la hora de ayudar a sus hijos a manejar sus hábitos en redes sociales?",
+      aEs: "Los padres juegan un papel fundamental. Pueden establecer límites firmes pero flexibles, como restringir el tiempo de pantalla después de cierta hora. También pueden dar el ejemplo con un uso equilibrado de la tecnología y mantener conversaciones abiertas y constantes sobre cómo las redes sociales afectan las emociones."
+    },
+    {
+      q: "How might social media addiction affect a person's productivity in school or work?",
+      a: "Social media addiction can severely disrupt productivity. For example, a student might procrastinate on homework by endlessly scrolling, or an employee might lose focus during work tasks, leading to missed deadlines and lower overall performance.",
+      qEs: "¿Cómo podría la adicción a las redes sociales afectar la productividad de una persona en el colegio o el trabajo?",
+      aEs: "La adicción a las redes sociales puede afectar gravemente la productividad. Por ejemplo, un estudiante puede procrastinar sus tareas haciendo scroll sin parar, o un empleado puede perder la concentración en sus labores, lo que provoca incumplimiento de plazos y un menor rendimiento general."
+    },
+    {
+      q: "Based on your research, what strategies can people use to reduce their screen time effectively?",
+      a: "Effective strategies include setting specific daily limits on app usage, using built-in screen time monitors, and creating intentional phone-free routines—like during meals or before bed.",
+      qEs: "Según su investigación, ¿qué estrategias pueden usar las personas para reducir su tiempo de pantalla de forma efectiva?",
+      aEs: "Algunas estrategias efectivas incluyen establecer límites diarios específicos para el uso de aplicaciones, usar los monitores de tiempo de pantalla integrados en el teléfono, y crear rutinas intencionales sin celular, como durante las comidas o antes de dormir."
+    },
+    {
+      q: "What surprised you the most in your research about social media and mental health?",
+      a: "I was particularly surprised by how small, frequent interactions—like checking notifications—can accumulate and increase long-term anxiety, even if each check seems brief.",
+      qEs: "¿Qué fue lo que más le sorprendió de su investigación sobre las redes sociales y la salud mental?",
+      aEs: "Me sorprendió especialmente cómo las interacciones pequeñas y frecuentes, como revisar notificaciones, se van acumulando y aumentan la ansiedad a largo plazo, aunque cada revisión parezca breve e inofensiva."
+    },
+    {
+      q: "Can you give an example of a healthy balance between social media use and other activities?",
+      a: "A healthy balance might involve scheduling specific times, such as 30 minutes in the morning or after school, and ensuring that you have regular breaks for physical activities or face-to-face interactions with friends and family.",
+      qEs: "¿Puede darnos un ejemplo de un equilibrio saludable entre el uso de redes sociales y otras actividades?",
+      aEs: "Un equilibrio saludable podría ser fijar horarios específicos, como 30 minutos en la mañana o después del colegio, y asegurarse de tener pausas regulares para actividad física o interacciones cara a cara con amigos y familia."
+    },
+    {
+      q: "What advice would you give to a teenager who feels left out because they aren't as active on social media as their peers?",
+      a: "I would advise them to remember that their worth is not tied to online popularity. They can focus on developing real-life hobbies, building close friendships outside of screens, and engaging in activities that bring them personal satisfaction.",
+      qEs: "¿Qué consejo le daría a un adolescente que se siente excluido por no ser tan activo en redes sociales como sus compañeros?",
+      aEs: "Le aconsejaría recordar que su valor no depende de su popularidad en línea. Puede enfocarse en desarrollar pasatiempos en la vida real, construir amistades cercanas fuera de las pantallas, y participar en actividades que le den satisfacción personal."
+    },
+    {
+      q: "How can teachers recognize when a student might be struggling with social media addiction, even if it's not obvious?",
+      a: "Teachers can look for signs such as a drop in academic performance, withdrawal from class discussions, or fatigue from lack of sleep, and then offer support or direct them to a counselor.",
+      qEs: "¿Cómo pueden los profesores reconocer cuando un estudiante podría estar luchando con una adicción a las redes sociales, aunque no sea evidente?",
+      aEs: "Los profesores pueden estar atentos a señales como una caída en el rendimiento académico, aislamiento en las discusiones de clase, o cansancio por falta de sueño, y luego ofrecer apoyo o referir al estudiante con un consejero."
+    },
+    {
+      q: "What long-term risks do you think society could face if social media addiction continues to grow?",
+      a: "If this trend continues, we might see widespread increases in mental health disorders like anxiety and depression, a decline in face-to-face communication skills, and even impacts on physical health, as people spend more time sedentary.",
+      qEs: "¿Qué riesgos a largo plazo cree que enfrentaría la sociedad si la adicción a las redes sociales sigue creciendo?",
+      aEs: "Si esta tendencia continúa, podríamos ver un aumento generalizado de trastornos de salud mental como la ansiedad y la depresión, una disminución en las habilidades de comunicación cara a cara, e incluso impactos en la salud física, ya que las personas pasarían más tiempo sedentarias."
+    },
+    {
+      q: "How can your team's findings be applied to improve mental health programs in the future?",
+      a: "Our findings can be used to inform school policies, develop digital wellness programs, and integrate regular education on healthy tech habits into the school curriculum, so that students have ongoing support and guidance in balancing their digital and real-life worlds.",
+      qEs: "¿Cómo se pueden aplicar los hallazgos de su equipo para mejorar los programas de salud mental en el futuro?",
+      aEs: "Nuestros hallazgos pueden usarse para guiar las políticas escolares, desarrollar programas de bienestar digital, e integrar educación regular sobre hábitos tecnológicos saludables en el currículo escolar, para que los estudiantes tengan apoyo y orientación constante en equilibrar su vida digital y su vida real."
+    },
+    {
+      q: "What would be the final reflection or takeaway you would give after your presentation?",
+      a: "I would say that social media is a powerful tool, but it requires mindful use. My reflection would be that by staying aware of how we interact online, setting boundaries, and fostering real-world connections, we can be healthier, happier, and more in control of our digital lives.",
+      qEs: "¿Cuál sería la reflexión final o el mensaje que le daría al público después de su presentación?",
+      aEs: "Diría que las redes sociales son una herramienta poderosa, pero requieren un uso consciente. Mi reflexión sería que, al mantenernos atentos a cómo interactuamos en línea, establecer límites y fomentar conexiones reales, podemos ser más saludables, más felices y tener más control sobre nuestra vida digital."
+    }
+  ];
+
+  /* ====================================================================
+     DATA: SPEECHES
+  ==================================================================== */
+  const speeches = [
+    {
+      name: "Yuselis",
+      role: "Introducción",
+      text: "Good morning.\n\nWelcome, and thank you so much for being here today. My name is Yuselis, and today we are going to talk about social media addiction and its effects on mental health.\n\nBefore we get started, I have a question for you. Do you consider social media to be an important part of your daily life?\n\nWe all know that social media has changed the way people communicate. Platforms such as Facebook, Instagram, and TikTok have become an important part of everyday life. They allow us to stay connected with friends and family, but they can also create serious problems when they are used excessively.\n\nSo, what is social media addiction?\n\nThink about this: when was the last time you went a full day without opening any social media app? I am sure that many of you here can't even remember. And that is exactly the point.\n\nSocial media addiction is a condition in which people spend too much time on social networks and can't easily control their use. Many users check their phones repeatedly because they want to see new messages, likes, or comments. As a result, they may become dependent on these platforms.\n\nThere are several causes of social media addiction.\n\nFirst, social media platforms are designed to keep users online.\n\nSecond, many people use social media because they want to feel accepted by others.\n\nAnother important cause is the fear of missing out. People may feel anxious when they think they are missing important events or information.\n\nFinally, social media has become a source of income for many people.\n\nNow you may be wondering, what are the consequences of social media addiction? It can affect our mental health in many ways, from anxiety and poor sleep to isolation and low self-esteem. My partners will introduce each of them.\n\nThank you for your attention.",
+      textEs: "Buenos días.\n\nBienvenidos, y muchas gracias por estar aquí hoy. Mi nombre es Yuselis, y hoy vamos a hablar sobre la adicción a las redes sociales y sus efectos en la salud mental.\n\nAntes de comenzar, tengo una pregunta para ustedes. ¿Consideran que las redes sociales son una parte importante de su vida diaria?\n\nTodos sabemos que las redes sociales han cambiado la forma en que las personas se comunican. Plataformas como Facebook, Instagram y TikTok se han convertido en una parte importante de la vida cotidiana. Nos permiten mantenernos conectados con amigos y familia, pero también pueden crear problemas serios cuando se usan de forma excesiva.\n\nEntonces, ¿qué es la adicción a las redes sociales?\n\nPiensen en esto: ¿cuándo fue la última vez que pasaron un día completo sin abrir ninguna aplicación de redes sociales? Estoy segura de que muchos de ustedes ni siquiera lo recuerdan. Y ese es exactamente el punto.\n\nLa adicción a las redes sociales es una condición en la que las personas pasan demasiado tiempo en las redes sociales y no pueden controlar fácilmente su uso. Muchos usuarios revisan su teléfono repetidamente porque quieren ver nuevos mensajes, likes o comentarios. Como resultado, pueden volverse dependientes de estas plataformas.\n\nHay varias causas de la adicción a las redes sociales.\n\nPrimero, las plataformas de redes sociales están diseñadas para mantener a los usuarios conectados.\n\nSegundo, muchas personas usan las redes sociales porque quieren sentirse aceptadas por los demás.\n\nOtra causa importante es el miedo a quedarse fuera (FOMO). Las personas pueden sentirse ansiosas cuando creen que se están perdiendo eventos o información importante.\n\nFinalmente, las redes sociales se han convertido en una fuente de ingresos para muchas personas.\n\nAhora se preguntarán, ¿cuáles son las consecuencias de la adicción a las redes sociales? Puede afectar nuestra salud mental de muchas formas, desde ansiedad y mal sueño hasta aislamiento y baja autoestima. Mis compañeras presentarán cada una de ellas.\n\nGracias por su atención."
+    },
+    {
+      name: "Gianella",
+      role: "Comparación y ansiedad",
+      text: "Thank you, Yuselis.\n\nHave you ever felt anxious when you couldn't check your phone? Or compared your life to what you see on social media?\n\nWhen we are always connected, we feel pressure to reply quickly, stay updated, and be constantly available. Every notification, like, and comment can create stress. If people do not answer quickly, we may feel worried.\n\nSocial media also shows us the best parts of other people's lives. We see perfect photos, amazing vacations, and happy relationships. Because of this, many people compare their everyday lives to what they see online. This comparison can make us feel lonely, sad, and anxious.\n\nYour value is not defined by likes, comments, or perfect photos. Sexy bodies or beautiful faces. What you see on social media is not always real life. So try not to compare yourself to other people online.\n\nTake a moment to step away from the screen and focus on the people who truly care about you. Spend time with your family and friends, the people who love you for who you are, not for how many likes you get.",
+      textEs: "Gracias, Yuselis.\n\n¿Alguna vez han sentido ansiedad cuando no podían revisar su teléfono? ¿O han comparado su vida con lo que ven en las redes sociales?\n\nCuando estamos siempre conectados, sentimos presión por responder rápido, mantenernos actualizados y estar disponibles todo el tiempo. Cada notificación, like y comentario puede generar estrés. Si las personas no responden rápido, podemos sentirnos preocupados.\n\nLas redes sociales también nos muestran las mejores partes de la vida de otras personas. Vemos fotos perfectas, vacaciones increíbles y relaciones felices. Por esto, muchas personas comparan su vida diaria con lo que ven en línea. Esta comparación puede hacernos sentir solos, tristes y ansiosos.\n\nSu valor no está definido por los likes, los comentarios o las fotos perfectas. Ni por cuerpos atractivos o rostros bonitos. Lo que ven en redes sociales no siempre es la vida real. Así que intenten no compararse con otras personas en línea.\n\nTómense un momento para alejarse de la pantalla y enfocarse en las personas que realmente se preocupan por ustedes. Pasen tiempo con su familia y amigos, las personas que los quieren por quienes son, no por cuántos likes reciben."
+    },
+    {
+      name: "Steicy",
+      role: "Autoestima y aislamiento",
+      text: "Did you know that social media has contributed to increasing levels of low self-esteem and social isolation around the world?\n\nWhat was created to connect people is now affecting how we see ourselves and how we relate to others.\n\nSocial media encourages constant comparison. Every day, we see images of seemingly perfect lives, bodies, and achievements. As a result, many people begin to compare themselves to unrealistic standards and may feel insecure, dissatisfied, or not good enough. Research has shown that social comparison on social media can negatively affect self-esteem.\n\nBut the consequences go beyond self-esteem. Although social media was designed to bring people together, excessive use can weaken real-life relationships. Many people spend more time communicating online than interacting face-to-face with family and friends.\n\nStudies have found a strong connection between heavy social media use and feelings of loneliness and isolation.\n\nWe are becoming more connected online — and more alone in real life. That is the painful paradox of social media addiction.",
+      textEs: "¿Sabían que las redes sociales han contribuido a aumentar los niveles de baja autoestima y aislamiento social alrededor del mundo?\n\nLo que se creó para conectar a las personas ahora está afectando cómo nos vemos a nosotros mismos y cómo nos relacionamos con los demás.\n\nLas redes sociales fomentan la comparación constante. Todos los días vemos imágenes de vidas, cuerpos y logros aparentemente perfectos. Como resultado, muchas personas comienzan a compararse con estándares poco realistas y pueden sentirse inseguras, insatisfechas o insuficientes. Las investigaciones han demostrado que la comparación social en redes puede afectar negativamente la autoestima.\n\nPero las consecuencias van más allá de la autoestima. Aunque las redes sociales se diseñaron para unir a las personas, el uso excesivo puede debilitar las relaciones de la vida real. Muchas personas pasan más tiempo comunicándose en línea que interactuando cara a cara con su familia y amigos.\n\nLos estudios han encontrado una fuerte conexión entre el uso intenso de redes sociales y los sentimientos de soledad y aislamiento.\n\nNos estamos volviendo más conectados en línea, y más solos en la vida real. Esa es la dolorosa paradoja de la adicción a las redes sociales."
+    },
+    {
+      name: "Jose",
+      role: "Sueño y salud física",
+      text: "Let's talk about something we all sacrifice for our screens — sleep.\n\nThink about the last time you told yourself \"just five more minutes\" before putting your phone down at night. Most of the time, those five minutes turned into an hour. Social media addiction disrupts our sleep in two powerful ways: first, the blue light emitted by screens interferes with melatonin production, making it harder for our bodies to fall asleep. Second, the mental stimulation from content — videos, arguments, exciting posts — keeps our brains in an active, alert state when they should be winding down.\n\nThe consequences are serious. Poor sleep leads to higher levels of stress, irritability, and reduced cognitive performance. Twenge et al. (2018) found that adolescents who spend more time on electronic devices are at significantly higher risk of sleep deprivation and depression.\n\nAnd here is what many people forget — this is not just a mental health issue. It is a physical health issue too. Chronic sleep deprivation weakens the immune system, affects concentration, and increases the risk of long-term health problems. Social media addiction doesn't just steal your peace of mind — it steals your rest, and with it, your health.",
+      textEs: "Hablemos de algo que todos sacrificamos por nuestras pantallas: el sueño.\n\nPiensen en la última vez que se dijeron \"solo cinco minutos más\" antes de dejar el teléfono en la noche. La mayoría de las veces, esos cinco minutos se convirtieron en una hora. La adicción a las redes sociales afecta nuestro sueño de dos formas importantes: primero, la luz azul que emiten las pantallas interfiere con la producción de melatonina, dificultando que nuestro cuerpo se quede dormido. Segundo, la estimulación mental del contenido —videos, discusiones, publicaciones emocionantes— mantiene nuestro cerebro en un estado activo y alerta cuando debería estar relajándose.\n\nLas consecuencias son serias. Dormir mal genera mayores niveles de estrés, irritabilidad y un menor rendimiento cognitivo. Twenge y colaboradores (2018) encontraron que los adolescentes que pasan más tiempo en dispositivos electrónicos tienen un riesgo significativamente mayor de privación de sueño y depresión.\n\nY aquí está lo que muchas personas olvidan: esto no es solo un problema de salud mental. También es un problema de salud física. La privación crónica de sueño debilita el sistema inmunológico, afecta la concentración y aumenta el riesgo de problemas de salud a largo plazo. La adicción a las redes sociales no solo roba nuestra tranquilidad, también roba nuestro descanso, y con él, nuestra salud."
+    },
+    {
+      name: "Maria",
+      role: "Conclusión",
+      text: "Nowadays, many teenagers use social media every day. Apps like TikTok, Instagram, and Facebook are very popular. Social media can be fun, but using it too much can also cause problems.\n\nMany students are doing homework while they are checking messages or watching videos. Because of this, they lose concentration.\n\nSocial media can also affect mental health. Some teenagers feel sad, confused, and stressed if they do not get many likes or comments. Other people compare their lives to people online and feel unhappy.\n\nIn conclusion, social media can be useful, but too much use can affect our mental health and daily life.\n\nUse social media wisely to protect your mental health.",
+      textEs: "Hoy en día, muchos adolescentes usan las redes sociales todos los días. Aplicaciones como TikTok, Instagram y Facebook son muy populares. Las redes sociales pueden ser divertidas, pero usarlas demasiado también puede causar problemas.\n\nMuchos estudiantes hacen sus tareas mientras revisan mensajes o ven videos. Por esto, pierden la concentración.\n\nLas redes sociales también pueden afectar la salud mental. Algunos adolescentes se sienten tristes, confundidos y estresados si no reciben muchos likes o comentarios. Otras personas comparan su vida con la de otros en línea y se sienten infelices.\n\nEn conclusión, las redes sociales pueden ser útiles, pero usarlas demasiado puede afectar nuestra salud mental y nuestra vida diaria.\n\nUsa las redes sociales con sabiduría para proteger tu salud mental."
+    }
+  ];
+
+  /* ====================================================================
+     SHARED: TEXT-TO-SPEECH HELPER
+  ==================================================================== */
+  const ttsSupported = 'speechSynthesis' in window;
+  let muted = false;
+  let activeSpeakBtn = null;
+  let voicesCache = [];
+
+  function loadVoices() {
+    voicesCache = window.speechSynthesis.getVoices();
+  }
+  if (ttsSupported) {
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  function pickVoice(lang) {
+    if (!voicesCache.length) return null;
+    const exact = voicesCache.find(v => v.lang === lang);
+    if (exact) return exact;
+    const prefix = lang.split('-')[0];
+    const partial = voicesCache.find(v => v.lang && v.lang.split('-')[0] === prefix);
+    return partial || null;
+  }
+
+  // Speaks text and toggles a "speaking" visual state on the triggering button.
+  function speakText(text, lang, btnEl) {
+    if (!ttsSupported || muted) return;
+    window.speechSynthesis.cancel();
+    if (activeSpeakBtn) activeSpeakBtn.classList.remove('is-speaking');
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    utter.rate = lang.startsWith('en') ? 0.95 : 1.0;
+    const v = pickVoice(lang);
+    if (v) utter.voice = v;
+
+    if (btnEl) {
+      btnEl.classList.add('is-speaking');
+      activeSpeakBtn = btnEl;
+    }
+    utter.onend = function () {
+      if (btnEl) btnEl.classList.remove('is-speaking');
+      if (activeSpeakBtn === btnEl) activeSpeakBtn = null;
+    };
+    utter.onerror = utter.onend;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function stopSpeaking() {
+    if (ttsSupported) window.speechSynthesis.cancel();
+    if (activeSpeakBtn) { activeSpeakBtn.classList.remove('is-speaking'); activeSpeakBtn = null; }
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ====================================================================
+     SHARED: PRACTICE RECORDER + AI EVALUATION WIDGET
+     Renders a "record my answer" box, transcribes with the browser's
+     speech recognition, then asks Claude (text-only) to evaluate
+     grammar / content / fluency against the expected context.
+  ==================================================================== */
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  const micSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+  // Builds the static HTML for one recorder instance. `uid` must be unique on the page.
+  function recorderWidgetHtml(uid) {
+    if (!micSupported) {
+      return `
+        <div class="rec-box">
+          <div class="rec-box-label">🎙️ Practica tu respuesta</div>
+          <p class="rec-eval-error">Este navegador no permite grabar audio aquí. Probá desde Chrome o Safari actualizado, en celular o computador.</p>
+        </div>`;
+    }
+    return `
+      <div class="rec-box">
+        <div class="rec-box-label">🎙️ Practica tu respuesta</div>
+        <div class="rec-controls">
+          <button class="rec-mic-btn" id="recMic-${uid}" aria-label="Grabar mi respuesta" title="Grabar mi respuesta">🎤</button>
+          <div class="rec-status" id="recStatus-${uid}">Toca el micrófono y responde en inglés.</div>
+        </div>
+        <div class="rec-btn-group" id="recBtnGroup-${uid}" style="display:none;">
+          <button class="pill-btn rec-play-audio" id="recPlay-${uid}">▶️ Escuchar mi grabación</button>
+          <button class="rec-eval-btn" id="recEval-${uid}">Corregir mi respuesta</button>
+        </div>
+        <div class="rec-transcript" id="recTranscript-${uid}">
+          <div class="rec-transcript-label">Lo que se entendió</div>
+          <p class="rec-transcript-text" id="recTranscriptText-${uid}"></p>
+        </div>
+        <div class="rec-eval-panel" id="recEvalPanel-${uid}"></div>
+      </div>`;
+  }
+
+  // Wires up a recorder instance. `getContext()` returns { kind: 'qa'|'speech', question, expectedAnswer, speechText, speakerName }
+  function wireRecorder(uid, getContext) {
+    const micBtn = document.getElementById('recMic-' + uid);
+    if (!micBtn) return; // unsupported-browser fallback box has no controls
+
+    const statusEl = document.getElementById('recStatus-' + uid);
+    const btnGroup = document.getElementById('recBtnGroup-' + uid);
+    const playBtn = document.getElementById('recPlay-' + uid);
+    const evalBtn = document.getElementById('recEval-' + uid);
+    const transcriptBox = document.getElementById('recTranscript-' + uid);
+    const transcriptText = document.getElementById('recTranscriptText-' + uid);
+    const evalPanel = document.getElementById('recEvalPanel-' + uid);
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioURL = null;
+    let recognizer = null;
+    let liveTranscript = '';
+    let recording = false;
+    let audioEl = null;
+
+    function setStatus(text, live) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle('live', !!live);
+    }
+
+    async function startRecording() {
+      stopSpeaking();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+          if (audioURL) URL.revokeObjectURL(audioURL);
+          audioURL = URL.createObjectURL(blob);
+          stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start();
+
+        liveTranscript = '';
+        if (SpeechRecognitionCtor) {
+          recognizer = new SpeechRecognitionCtor();
+          recognizer.lang = 'en-US';
+          recognizer.continuous = true;
+          recognizer.interimResults = true;
+          recognizer.onresult = (event) => {
+            let finalText = '';
+            for (let i = 0; i < event.results.length; i++) {
+              finalText += event.results[i][0].transcript + ' ';
+            }
+            liveTranscript = finalText.trim();
+          };
+          recognizer.onerror = function () {};
+          try { recognizer.start(); } catch (e) {}
+        }
+
+        recording = true;
+        micBtn.classList.add('recording');
+        micBtn.textContent = '⏹️';
+        setStatus('Grabando… toca de nuevo para detener.', true);
+      } catch (err) {
+        setStatus('No se pudo acceder al micrófono. Revisá los permisos del navegador.', false);
+      }
+    }
+
+    function stopRecording() {
+      recording = false;
+      micBtn.classList.remove('recording');
+      micBtn.textContent = '🎤';
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      if (recognizer) { try { recognizer.stop(); } catch (e) {} }
+
+      setTimeout(() => {
+        setStatus(liveTranscript ? 'Grabación lista.' : 'Grabación lista (no se detectó texto; podés intentar de nuevo).', false);
+        btnGroup.style.display = 'flex';
+        if (liveTranscript) {
+          transcriptText.textContent = liveTranscript;
+          transcriptBox.classList.add('show');
+        }
+      }, 300);
+    }
+
+    micBtn.addEventListener('click', function () {
+      if (!recording) startRecording(); else stopRecording();
+    });
+
+    playBtn.addEventListener('click', function () {
+      if (!audioURL) return;
+      if (audioEl) { audioEl.pause(); audioEl = null; }
+      audioEl = new Audio(audioURL);
+      audioEl.play();
+      playBtn.textContent = '⏸️ Reproduciendo…';
+      audioEl.onended = () => { playBtn.textContent = '▶️ Escuchar mi grabación'; };
+    });
+
+    evalBtn.addEventListener('click', async function () {
+      const ctx = getContext();
+      const spokenText = liveTranscript && liveTranscript.trim().length > 0 ? liveTranscript.trim() : null;
+
+      evalPanel.classList.add('show');
+      if (!spokenText) {
+        evalPanel.innerHTML = '<p class="rec-eval-error">No se detectó voz reconocible en la grabación. Probá grabar de nuevo hablando un poco más cerca del micrófono.</p>';
+        return;
+      }
+
+      evalBtn.disabled = true;
+      evalPanel.innerHTML = '<div class="rec-eval-loading"><span class="rec-spinner"></span> Corrigiendo tu respuesta…</div>';
+
+      try {
+        const evalResult = await evaluateWithClaude(ctx, spokenText);
+        renderEvaluation(evalPanel, evalResult);
+      } catch (err) {
+        evalPanel.innerHTML = '<p class="rec-eval-error">No se pudo obtener la corrección en este momento. Intenta nuevamente en unos segundos.</p>';
+      } finally {
+        evalBtn.disabled = false;
+      }
+    });
+  }
+
+  function renderEvaluation(panelEl, evalResult) {
+    panelEl.innerHTML = `
+      <div class="rec-eval-score-row">
+        <span class="rec-eval-chip">Contenido: ${escapeHtml(evalResult.contentScore || '—')}</span>
+        <span class="rec-eval-chip">Gramática: ${escapeHtml(evalResult.grammarScore || '—')}</span>
+        <span class="rec-eval-chip">Fluidez: ${escapeHtml(evalResult.fluencyScore || '—')}</span>
+      </div>
+      <div class="rec-eval-section">
+        <div class="rec-eval-section-title">Gramática y vocabulario</div>
+        <p class="rec-eval-section-body">${escapeHtml(evalResult.grammarNotes || '')}</p>
+      </div>
+      <div class="rec-eval-section">
+        <div class="rec-eval-section-title">Contenido</div>
+        <p class="rec-eval-section-body">${escapeHtml(evalResult.contentNotes || '')}</p>
+      </div>
+      <div class="rec-eval-section">
+        <div class="rec-eval-section-title">Claridad al hablar</div>
+        <p class="rec-eval-section-body">${escapeHtml(evalResult.fluencyNotes || '')}</p>
+      </div>
+      <div class="rec-eval-section">
+        <div class="rec-eval-section-title">Versión mejorada sugerida</div>
+        <p class="rec-eval-section-body">${escapeHtml(evalResult.improvedVersion || '')}</p>
+      </div>
+    `;
+  }
+
+  // Calls Claude (text-only) through the Anthropic API to grade the transcribed answer.
+  async function evaluateWithClaude(ctx, spokenText) {
+    let prompt;
+    if (ctx.kind === 'qa') {
+      prompt = `You are an encouraging English teacher helping a Spanish-speaking student practice for an oral exam in front of a jury.
+
+The student was asked this question:
+"${ctx.question}"
+
+A model/expected answer is:
+"${ctx.expectedAnswer}"
+
+The student's spoken answer was transcribed (by browser speech recognition, so minor transcription glitches are possible) as:
+"${spokenText}"
+
+Evaluate the student's spoken answer. Respond with ONLY a JSON object (no markdown fences, no preamble) with this exact shape:
+{
+  "contentScore": "one of: Excelente / Muy bien / Bien / A mejorar",
+  "grammarScore": "one of: Excelente / Muy bien / Bien / A mejorar",
+  "fluencyScore": "one of: Excelente / Muy bien / Bien / A mejorar",
+  "grammarNotes": "2-4 sentences in Spanish pointing out specific grammar or vocabulary issues found in the transcript, or praise if there are none. Be specific and quote short fragments when useful.",
+  "contentNotes": "2-4 sentences in Spanish on whether the answer actually addressed the question compared to the expected answer, noting anything missing or off-topic.",
+  "fluencyNotes": "2-3 sentences in Spanish inferring fluency/clarity from sentence structure and completeness of the transcript (e.g. run-on fragments, repeated words, incomplete sentences suggest hesitation). Be honest that this is an approximation since it's based on a text transcript, not the audio itself.",
+  "improvedVersion": "A short improved version of the answer in English, 2-4 sentences, that keeps the student's ideas but fixes grammar issues."
+}`;
+    } else {
+      prompt = `You are an encouraging English teacher helping a Spanish-speaking student practice delivering an oral presentation (speech) for a jury defense.
+
+This is the original speech text by ${ctx.speakerName}:
+"${ctx.speechText}"
+
+The student practiced saying this speech out loud, and it was transcribed (by browser speech recognition, so minor transcription glitches are possible) as:
+"${spokenText}"
+
+Evaluate the student's spoken delivery against the original speech. Respond with ONLY a JSON object (no markdown fences, no preamble) with this exact shape:
+{
+  "contentScore": "one of: Excelente / Muy bien / Bien / A mejorar",
+  "grammarScore": "one of: Excelente / Muy bien / Bien / A mejorar",
+  "fluencyScore": "one of: Excelente / Muy bien / Bien / A mejorar",
+  "grammarNotes": "2-4 sentences in Spanish pointing out specific grammar, word choice, or pronunciation-adjacent issues inferable from the transcript, or praise if there are none.",
+  "contentNotes": "2-4 sentences in Spanish on how much of the original speech content was covered, noting any important parts that were skipped, changed, or added.",
+  "fluencyNotes": "2-3 sentences in Spanish inferring fluency/delivery from the transcript (run-on fragments, repeated words, long pauses implied by incomplete sentences). Be honest this is approximate since it's based on text, not audio.",
+  "improvedVersion": "2-4 sentences in English with a tip on how to deliver this part of the speech more naturally."
+}`;
+    }
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('API request failed with status ' + response.status);
+    }
+
+    const data = await response.json();
+    const textBlock = (data.content || []).map(b => b.text || '').join('\n');
+    const cleaned = textBlock.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (!parsed || typeof parsed !== 'object') {
+      throw new Error('Unexpected evaluation response shape');
+    }
+    return parsed;
+  }
+
+  /* ====================================================================
+     NAVIGATION
+  ==================================================================== */
+  function goToPage(pageName) {
+    stopSpeaking();
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + pageName).classList.add('active');
+    document.querySelectorAll('.top-nav button').forEach(b => b.classList.toggle('active', b.dataset.page === pageName));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.page === pageName));
+    window.scrollTo(0, 0);
+  }
+
+  document.querySelectorAll('.top-nav button, .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => goToPage(btn.dataset.page));
+  });
+
+  /* ====================================================================
+     WHEEL PAGE
+  ==================================================================== */
+  const n = questions.length;
+  const anglePer = 360 / n;
+  const colors = ['#ff6b6b', '#ffb37e', '#5eead4', '#7dd3fc', '#b39ddb', '#ff8fb1'];
+  const usedColor = 'rgba(255,255,255,0.06)';
+
+  const svg = document.getElementById('wqWheelSvg');
+  const wheelOuter = document.getElementById('wqWheelOuter');
+  const hub = document.getElementById('wqHub');
+  const spinBtn = document.getElementById('wqSpinBtn');
+  const dotsWrap = document.getElementById('wqDots');
+  const progressLabel = document.getElementById('wqProgressLabel');
+  const resultWrap = document.getElementById('wqResult');
+  const resetBtn = document.getElementById('wqResetBtn');
+  const muteBtn = document.getElementById('wqMuteBtn');
+
+  let currentRotation = 0;
+  let spinning = false;
+  const askedSet = new Set();
+
+  muteBtn.addEventListener('click', function () {
+    muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+    muteBtn.title = muted ? 'Activar voz' : 'Silenciar voz';
+    muteBtn.setAttribute('aria-label', muteBtn.title);
+    if (muted) stopSpeaking();
+  });
+
+  function polar(cx, cy, r, angleDeg) {
+    const rad = angleDeg * Math.PI / 180;
+    return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };
+  }
+
+  function describeArc(cx, cy, r, startAngle, endAngle) {
+    const p1 = polar(cx, cy, r, startAngle);
+    const p2 = polar(cx, cy, r, endAngle);
+    return `M ${cx},${cy} L ${p1.x.toFixed(2)},${p1.y.toFixed(2)} A ${r},${r} 0 0 1 ${p2.x.toFixed(2)},${p2.y.toFixed(2)} Z`;
+  }
+
+  function buildWheel() {
+    svg.innerHTML = '';
+    const cx = 150, cy = 150, r = 146;
+    for (let i = 0; i < n; i++) {
+      const startAngle = i * anglePer;
+      const endAngle = (i + 1) * anglePer;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', describeArc(cx, cy, r, startAngle, endAngle));
+      path.setAttribute('fill', colors[i % colors.length]);
+      path.setAttribute('stroke', '#1c1230');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('id', 'wq-seg-' + i);
+      svg.appendChild(path);
+
+      const mid = (startAngle + endAngle) / 2;
+      const labelPos = polar(cx, cy, r * 0.72, mid);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', labelPos.x.toFixed(2));
+      text.setAttribute('y', labelPos.y.toFixed(2));
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.setAttribute('font-family', 'Fredoka, sans-serif');
+      text.setAttribute('font-weight', '700');
+      text.setAttribute('font-size', '18');
+      text.setAttribute('fill', '#1c1230');
+      text.setAttribute('id', 'wq-label-' + i);
+      text.textContent = (i + 1).toString();
+      svg.appendChild(text);
+    }
+  }
+
+  function buildDots() {
+    dotsWrap.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'wq-dot';
+      dot.id = 'wq-dot-' + i;
+      dotsWrap.appendChild(dot);
+    }
+  }
+
+  function markUsed(i) {
+    document.getElementById('wq-seg-' + i).setAttribute('fill', usedColor);
+    document.getElementById('wq-label-' + i).setAttribute('fill', 'rgba(247,243,255,0.35)');
+    document.getElementById('wq-dot-' + i).classList.add('done');
+  }
+
+  function updateProgressLabel() {
+    progressLabel.textContent = askedSet.size + ' de ' + n + ' preguntas usadas';
+  }
+
+  function spin() {
+    if (spinning) return;
+    const remaining = [];
+    for (let i = 0; i < n; i++) if (!askedSet.has(i)) remaining.push(i);
+    if (remaining.length === 0) return;
+
+    stopSpeaking();
+    spinning = true;
+    spinBtn.disabled = true;
+
+    const chosen = remaining[Math.floor(Math.random() * remaining.length)];
+    const segCenter = (chosen + 0.5) * anglePer;
+    const jitter = (Math.random() - 0.5) * (anglePer * 0.6);
+    const targetAngle = segCenter + jitter;
+
+    const targetMod = (360 - targetAngle + 360) % 360;
+    const currentMod = ((currentRotation % 360) + 360) % 360;
+    let delta = (targetMod - currentMod + 360) % 360;
+    if (delta < 90) delta += 360;
+    const fullSpins = 5 + Math.floor(Math.random() * 3);
+    currentRotation += fullSpins * 360 + delta;
+
+    wheelOuter.style.transform = 'rotate(' + currentRotation + 'deg)';
+    hub.textContent = '•••';
+
+    setTimeout(function () {
+      spinning = false;
+      askedSet.add(chosen);
+      markUsed(chosen);
+      updateProgressLabel();
+      hub.textContent = (chosen + 1).toString();
+      showResult(chosen);
+      spinBtn.disabled = askedSet.size >= n;
+      if (askedSet.size >= n) {
+        spinBtn.textContent = 'Ruleta completa';
+      }
+    }, 4600);
+  }
+
+  function showResult(i) {
+    const item = questions[i];
+    const recUid = 'wheel-' + i + '-' + Date.now();
+    resultWrap.innerHTML = `
+      <div class="wq-result-card">
+        <div class="wq-result-eyebrow">Pregunta ${i + 1}</div>
+        <div class="wq-question-row">
+          <p class="wq-question">${escapeHtml(item.q)}</p>
+          <button class="icon-btn" id="wqSpeakQBtn" aria-label="Escuchar pregunta" title="Escuchar pregunta">🔊</button>
+        </div>
+
+        ${recorderWidgetHtml(recUid)}
+
+        <div class="wq-answer-panel" id="wqAnswerPanel">
+          <div class="wq-answer-row">
+            <div>
+              <div class="wq-answer-label">Respuesta</div>
+              <p class="wq-answer-text">${escapeHtml(item.a)}</p>
+            </div>
+            <button class="icon-btn" id="wqSpeakABtn" aria-label="Escuchar respuesta" title="Escuchar respuesta">🔊</button>
+          </div>
+          <div class="wq-translation" id="wqTranslation">
+            <div class="wq-answer-label">Traducción</div>
+            <p class="wq-answer-text" style="margin-bottom:8px;"><em>${escapeHtml(item.qEs)}</em></p>
+            <p class="wq-answer-text">${escapeHtml(item.aEs)}</p>
+          </div>
+        </div>
+        <div class="wq-btn-row" id="wqBtnRow"></div>
+      </div>
+    `;
+
+    // Auto-read the question out loud as soon as it lands.
+    const speakQBtn = document.getElementById('wqSpeakQBtn');
+    speakQBtn.onclick = function () { speakText(item.q, 'en-US', speakQBtn); };
+    speakText(item.q, 'en-US', speakQBtn);
+
+    // Activate the practice recorder for this question right away.
+    wireRecorder(recUid, () => ({ kind: 'qa', question: item.q, expectedAnswer: item.a }));
+
+    const btnRow = document.getElementById('wqBtnRow');
+    const revealBtn = document.createElement('button');
+    revealBtn.className = 'wq-btn wq-btn-reveal';
+    revealBtn.textContent = 'Ver respuesta';
+    revealBtn.onclick = function () {
+      document.getElementById('wqAnswerPanel').classList.add('show');
+      btnRow.innerHTML = '';
+
+      const speakABtn = document.getElementById('wqSpeakABtn');
+      speakABtn.onclick = function () { speakText(item.a, 'en-US', speakABtn); };
+
+      const translateBtn = document.createElement('button');
+      translateBtn.className = 'wq-btn wq-btn-translate';
+      translateBtn.textContent = 'Ver traducción';
+      translateBtn.onclick = function () {
+        const t = document.getElementById('wqTranslation');
+        const showing = t.classList.toggle('show');
+        translateBtn.textContent = showing ? 'Ocultar traducción' : 'Ver traducción';
+      };
+      btnRow.appendChild(translateBtn);
+    };
+    btnRow.appendChild(revealBtn);
+  }
+
+  resetBtn.addEventListener('click', function () {
+    stopSpeaking();
+    askedSet.clear();
+    currentRotation = currentRotation % 360;
+    wheelOuter.style.transition = 'none';
+    wheelOuter.style.transform = 'rotate(' + currentRotation + 'deg)';
+    void wheelOuter.offsetWidth;
+    wheelOuter.style.transition = '';
+    buildWheel();
+    buildDots();
+    updateProgressLabel();
+    hub.textContent = '?';
+    resultWrap.innerHTML = '';
+    spinBtn.disabled = false;
+    spinBtn.textContent = 'Girar la ruleta';
+  });
+
+  spinBtn.addEventListener('click', spin);
+
+  buildWheel();
+  buildDots();
+  updateProgressLabel();
+
+  /* ====================================================================
+     BANK PAGE
+  ==================================================================== */
+  const bankList = document.getElementById('bankList');
+  const bankHeardSet = new Set();
+  let bankFilter = 'all';
+
+  function renderBank() {
+    bankList.innerHTML = '';
+    questions.forEach((item, i) => {
+      if (bankFilter === 'unheard' && bankHeardSet.has(i)) return;
+
+      const el = document.createElement('div');
+      el.className = 'bank-item';
+      el.innerHTML = `
+        <div class="bank-item-head">
+          <div class="bank-item-num">${i + 1}</div>
+          <p class="bank-item-q">${escapeHtml(item.q)}</p>
+          <button class="icon-btn" id="bankSpeakQ-${i}" aria-label="Escuchar pregunta" title="Escuchar pregunta">🔊</button>
+        </div>
+        <div class="bank-item-body">
+          <div class="bank-toggle-row">
+            <button class="pill-btn" id="bankShowA-${i}">Ver respuesta</button>
+            <button class="pill-btn sky" id="bankShowT-${i}">Ver traducción</button>
+          </div>
+          <div class="bank-answer" id="bankAnswer-${i}">
+            <div class="bank-answer-row" style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+              <p class="bank-answer-text">${escapeHtml(item.a)}</p>
+              <button class="icon-btn" id="bankSpeakA-${i}" aria-label="Escuchar respuesta" title="Escuchar respuesta">🔊</button>
+            </div>
+          </div>
+          <div class="bank-translation" id="bankTranslation-${i}">
+            <div class="bank-translation-label">Traducción</div>
+            <p class="bank-translation-text"><em>${escapeHtml(item.qEs)}</em></p>
+            <p class="bank-translation-text">${escapeHtml(item.aEs)}</p>
+          </div>
+          ${recorderWidgetHtml('bank-' + i)}
+        </div>
+      `;
+      bankList.appendChild(el);
+
+      wireRecorder('bank-' + i, () => ({ kind: 'qa', question: item.q, expectedAnswer: item.a }));
+
+      const speakQBtn = el.querySelector('#bankSpeakQ-' + i);
+      speakQBtn.onclick = function () {
+        bankHeardSet.add(i);
+        speakText(item.q, 'en-US', speakQBtn);
+      };
+
+      const showABtn = el.querySelector('#bankShowA-' + i);
+      const answerPanel = el.querySelector('#bankAnswer-' + i);
+      showABtn.onclick = function () {
+        const showing = answerPanel.classList.toggle('show');
+        showABtn.textContent = showing ? 'Ocultar respuesta' : 'Ver respuesta';
+        if (showing) {
+          const speakABtn = el.querySelector('#bankSpeakA-' + i);
+          speakABtn.onclick = function () { speakText(item.a, 'en-US', speakABtn); };
+        }
+      };
+
+      const showTBtn = el.querySelector('#bankShowT-' + i);
+      const translationPanel = el.querySelector('#bankTranslation-' + i);
+      showTBtn.onclick = function () {
+        const showing = translationPanel.classList.toggle('show');
+        showTBtn.textContent = showing ? 'Ocultar traducción' : 'Ver traducción';
+      };
+    });
+
+    if (!bankList.children.length) {
+      bankList.innerHTML = '<p style="color:var(--text-dim); font-size:13px; text-align:center; padding:20px 0;">Ya escuchaste todas las preguntas. Cambia el filtro a "Todas" para repasarlas de nuevo.</p>';
+    }
+  }
+
+  document.querySelectorAll('#bankFilterRow .filter-chip').forEach(chip => {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('#bankFilterRow .filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      bankFilter = chip.dataset.filter;
+      renderBank();
+    });
+  });
+
+  renderBank();
+
+  /* ====================================================================
+     SPEECHES PAGE
+  ==================================================================== */
+  const speechList = document.getElementById('speechList');
+
+  function initials(name) {
+    return name.trim().slice(0, 2).toUpperCase();
+  }
+
+  speeches.forEach((sp, i) => {
+    const el = document.createElement('div');
+    el.className = 'speech-item';
+    el.innerHTML = `
+      <div class="speech-item-head">
+        <div class="speech-item-who">
+          <div class="speech-avatar">${initials(sp.name)}</div>
+          <div>
+            <p class="speech-name">${escapeHtml(sp.name)}</p>
+            <p class="speech-role">${escapeHtml(sp.role)}</p>
+          </div>
+        </div>
+        <button class="icon-btn" id="speechSpeak-${i}" aria-label="Escuchar speech" title="Escuchar speech">🔊</button>
+      </div>
+      <p class="speech-text">${escapeHtml(sp.text)}</p>
+      <div class="speech-btn-row">
+        <button class="pill-btn sky" id="speechTranslate-${i}">Ver traducción</button>
+      </div>
+      <div class="speech-translation" id="speechTranslationPanel-${i}">
+        <div class="speech-translation-label">Traducción</div>
+        <p class="speech-translation-text">${escapeHtml(sp.textEs)}</p>
+      </div>
+      ${recorderWidgetHtml('speech-' + i)}
+    `;
+    speechList.appendChild(el);
+
+    wireRecorder('speech-' + i, () => ({ kind: 'speech', speechText: sp.text, speakerName: sp.name }));
+
+    const speakBtn = el.querySelector('#speechSpeak-' + i);
+    speakBtn.onclick = function () { speakText(sp.text, 'en-US', speakBtn); };
+
+    const translateBtn = el.querySelector('#speechTranslate-' + i);
+    const panel = el.querySelector('#speechTranslationPanel-' + i);
+    translateBtn.onclick = function () {
+      const showing = panel.classList.toggle('show');
+      translateBtn.textContent = showing ? 'Ocultar traducción' : 'Ver traducción';
+    };
+  });
+
+})();
+</script>
+</body>
+</html>
